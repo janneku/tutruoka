@@ -1,0 +1,25 @@
+tutruoka
+A command line tool that shows meals at Tampere University of Technology campus
+
+Licensed under public domain.
+
+To install, run 
+
+    make install
+
+as root. The tool will be called "tutruoka".
+
+The tool also supports filtering based on search keywords similar to Google
+search. Keywords from the command line are combined with logical AND, i.e.
+only the meals matching all keywords are shown. The keywords are
+case-insensitive. A minus (-) in front of a keyword can be used to suppress
+matches.
+
+Examples:
+
+    tutruoka -juust         Supress everything that has cheese in it.
+
+    tutruoka combo -tofu    Show combo meals but supress ones with "tofu".
+
+    tutruoka zip rohee	    Show rohee meals from Zip restaurant.
+
