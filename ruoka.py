@@ -13,6 +13,7 @@ from datetime import date
 import termios
 import struct
 import fcntl
+import sys
 
 restaurants = [
     {'name': 'Newton', 'kitchen': 6, 'menutype': 60},
@@ -51,6 +52,8 @@ def get_menu():
 
     _, week, weekday = menu_date.isocalendar()
 
+    filter_keywords = sys.argv[1:]
+
     for r in restaurants:
         params = {
             'kitchen': r['kitchen'],
@@ -77,8 +80,8 @@ def get_menu():
                 'name': option['Name'].capitalize(),
             })
 
-        padding = width // 2 - len(r['name']) // 2
-        print(RESTAURANT_NAME + ' ' * padding + r['name'] + ENDC)
+        header_printed = False
+
         for option in options:
             content = meal_dict.pop(option['key'], None)
             if content is None:
@@ -90,6 +93,27 @@ def get_menu():
             if len(names) > 1:
                 main_item += ', '
 
+            # Filter based on arguments from the command line
+            words = '%s %s %s' % (r['name'], option['name'], ' '.join(names))
+            words = words.lower()
+            visible = True
+            for kw in filter_keywords:
+                if kw.startswith('-'):
+                    if kw[1:] in words:
+                        visible = False
+                        break
+                else:
+                    if kw not in words:
+                        visible = False
+                        break
+            if not visible:
+                continue
+
+            if not header_printed:
+                padding = width // 2 - len(r['name']) // 2
+                print(RESTAURANT_NAME + ' ' * padding + r['name'] + ENDC)
+                header_printed = True
+
             # Limit the length of extra items
             extra = ', '.join(names[1:])
             max_extra_len = width - (width // 5 + len(main_item) + len(SEPARATOR)) - 1
@@ -99,7 +123,9 @@ def get_menu():
             padding = width // 5 - len(option['name'])
             print(OPTION_NAME + ' ' * padding + option['name'] + SEPARATOR_COLOR + \
                   SEPARATOR + MAIN_ITEM + main_item + EXTRA_NAMES + extra + ENDC)
-        print('')
+
+        if header_printed:
+            print('')
 
 if __name__ == '__main__':
     get_menu()
