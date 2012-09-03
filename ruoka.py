@@ -1,9 +1,15 @@
 #!/usr/bin/env python
 
 import json
-import urllib
+try:
+    # Python3
+    import urllib.request
+    urlopen = urllib.request.urlopen
+except ImportError:
+    # Python2
+    import urllib
+    urlopen = urllib.urlopen
 from datetime import date
-import os
 import termios
 import struct
 import fcntl
@@ -43,16 +49,16 @@ def get_menu():
             'weekday': weekday,
             'week': week,
         }
-        f = urllib.urlopen('http://www.juvenes.fi/DesktopModules/Talents.LunchMenu/LunchMenuServices.asmx/GetMenuByWeekday?KitchenId=%(kitchen)s&MenuTypeId=%(menutype)s&Week=%(week)d&Weekday=%(weekday)d&lang=\'fi\'&format=json' %
+        f = urlopen('http://www.juvenes.fi/DesktopModules/Talents.LunchMenu/LunchMenuServices.asmx/GetMenuByWeekday?KitchenId=%(kitchen)s&MenuTypeId=%(menutype)s&Week=%(week)d&Weekday=%(weekday)d&lang=\'fi\'&format=json' %
             params)
-        data = f.read()
+        data = f.read().decode('utf-8')
         # the retrieved data is a Javascript value in form '("d": "xxx");',
         # where xxx is JSON encoded payload.
         json_string = json.loads(data.strip()[1:-2])['d']
         d = json.loads(json_string)
 
         padding = width // 2 - len(r['name']) // 2
-        print RESTAURANT_NAME + ' ' * padding + r['name'] + ENDC
+        print(RESTAURANT_NAME + ' ' * padding + r['name'] + ENDC)
         for option in d['MealOptions']:
             names = []
             for item in option['MenuItems']:
@@ -68,9 +74,9 @@ def get_menu():
                 extra = extra[0:max_extra_len-3] + '...'
 
             padding = width // 5 - len(option['Name'])
-            print OPTION_NAME + ' ' * padding + option['Name'] + SEPARATOR_COLOR + \
-                  SEPARATOR + MAIN_ITEM + main_item + EXTRA_NAMES + extra + ENDC
-        print ''
+            print(OPTION_NAME + ' ' * padding + option['Name'] + SEPARATOR_COLOR + \
+                  SEPARATOR + MAIN_ITEM + main_item + EXTRA_NAMES + extra + ENDC)
+        print('')
 
 if __name__ == '__main__':
     get_menu()
