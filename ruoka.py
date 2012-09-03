@@ -1,0 +1,78 @@
+#!/usr/bin/env python
+
+import json
+import urllib
+import time
+import os
+import termios
+import struct
+import fcntl
+
+restaurants = [
+    {'name': 'Newton', 'kitchen': 6, 'menutype': 60},
+    {'name': 'Zip', 'kitchen': 12, 'menutype': 60},
+    {'name': 'Edison', 'kitchen': 2, 'menutype': 60},
+
+    {'name': 'Pastabaari', 'kitchen': 26, 'menutype': 11},
+    {'name': 'Fast Voltti', 'kitchen': 25, 'menutype': 4},
+    {'name': 'Fusion Kitchen', 'kitchen': 6, 'menutype': 3},
+]
+
+# Style settings
+RESTAURANT_NAME = '\033[33;1m'
+OPTION_NAME = ''
+SEPARATOR = ' > '
+SEPARATOR_COLOR = '\033[32m'
+MAIN_ITEM = '\033[0;1m'
+EXTRA_NAMES = '\033[22;36m'
+ENDC = '\033[0m'
+
+def get_menu():
+    # Determine terminal width
+    cr = struct.unpack('hh', fcntl.ioctl(0, termios.TIOCGWINSZ, '1234'))
+    width = cr[1]
+
+    weekday = int(time.strftime('%w'))
+    if weekday == 0:
+        weekday = 7
+    week = int(time.strftime('%W'))
+
+    for r in restaurants:
+        params = {
+            'kitchen': r['kitchen'],
+            'menutype': r['menutype'],
+            'weekday': weekday,
+            'week': week,
+        }
+        f = urllib.urlopen('http://www.juvenes.fi/DesktopModules/Talents.LunchMenu/LunchMenuServices.asmx/GetMenuByWeekday?KitchenId=%(kitchen)s&MenuTypeId=%(menutype)s&Week=%(week)d&Weekday=%(weekday)d&lang=\'fi\'&format=json' %
+            params)
+        data = f.read()
+        # the retrieved data is a Javascript value in form '("d": "xxx");',
+        # where xxx is JSON encoded payload.
+        json_string = json.loads(data.strip()[1:-2])['d']
+        d = json.loads(json_string)
+
+        padding = width // 2 - len(r['name']) // 2
+        print RESTAURANT_NAME + ' ' * padding + r['name'] + ENDC
+        for option in d['MealOptions']:
+            names = []
+            for item in option['MenuItems']:
+                names.append(item['Name'])
+            main_item = names[0]
+            if len(names) > 1:
+                main_item += ', '
+
+            # Limit the length of extra items
+            extra = ', '.join(names[1:])
+            max_extra_len = width - (width // 5 + len(main_item) + len(SEPARATOR)) - 1
+            if len(extra) > max_extra_len:
+                extra = extra[0:max_extra_len-3] + '...'
+
+            padding = width // 5 - len(option['Name'])
+            print OPTION_NAME + ' ' * padding + option['Name'] + SEPARATOR_COLOR + \
+                  SEPARATOR + MAIN_ITEM + main_item + EXTRA_NAMES + extra + ENDC
+        print ''
+
+if __name__ == '__main__':
+    get_menu()
+
