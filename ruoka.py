@@ -2,7 +2,7 @@
 
 import json
 import urllib
-import time
+from datetime import date
 import os
 import termios
 import struct
@@ -32,10 +32,9 @@ def get_menu():
     cr = struct.unpack('hh', fcntl.ioctl(0, termios.TIOCGWINSZ, '1234'))
     width = cr[1]
 
-    weekday = int(time.strftime('%w'))
-    if weekday == 0:
-        weekday = 7
-    week = int(time.strftime('%W'))
+    menu_date = date.today()
+
+    _, week, weekday = menu_date.isocalendar()
 
     for r in restaurants:
         params = {
@@ -75,4 +74,3 @@ def get_menu():
 
 if __name__ == '__main__':
     get_menu()
-
