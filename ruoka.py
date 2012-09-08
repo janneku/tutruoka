@@ -25,6 +25,7 @@ restaurants = [
     {'name': 'Fusion Kitchen', 'kitchen': 6, 'menutype': 3},
 ]
 
+# TODO: translate names to english
 meal_options = [
     {'key': 'LOUNAS1', 'name': 'Rohee'},
     {'key': 'LOUNAS2', 'name': 'Rohee'},
@@ -48,11 +49,21 @@ def get_menu():
     cr = struct.unpack('hh', fcntl.ioctl(0, termios.TIOCGWINSZ, '1234'))
     width = cr[1]
 
+    lang = 'fi'   # fi or en
+
+    cmdline = sys.argv[1:]
+
+    # See if there is -lang option on the command line
+    try:
+        i = cmdline.index('-lang')
+        lang = cmdline.pop(i + 1)
+        cmdline.pop(i)
+    except ValueError:
+        pass
+
     menu_date = date.today()
 
     _, week, weekday = menu_date.isocalendar()
-
-    filter_keywords = sys.argv[1:]
 
     for r in restaurants:
         params = {
@@ -60,8 +71,9 @@ def get_menu():
             'menutype': r['menutype'],
             'weekday': weekday,
             'week': week,
+            'lang': lang,
         }
-        f = urlopen('http://www.juvenes.fi/DesktopModules/Talents.LunchMenu/LunchMenuServices.asmx/GetMenuByWeekday?KitchenId=%(kitchen)s&MenuTypeId=%(menutype)s&Week=%(week)d&Weekday=%(weekday)d&lang=\'fi\'&format=json' %
+        f = urlopen('http://www.juvenes.fi/DesktopModules/Talents.LunchMenu/LunchMenuServices.asmx/GetMenuByWeekday?KitchenId=%(kitchen)s&MenuTypeId=%(menutype)s&Week=%(week)d&Weekday=%(weekday)d&lang=\'%(lang)s\'&format=json' %
             params)
         data = f.read().decode('utf-8')
         # the retrieved data is a Javascript value in form '("d": "xxx");',
@@ -99,7 +111,7 @@ def get_menu():
             words = '%s %s %s' % (r['name'], option['name'], ' '.join(names))
             words = words.lower()
             visible = True
-            for kw in filter_keywords:
+            for kw in cmdline:
                 if kw.startswith('-'):
                     if kw[1:] in words:
                         visible = False

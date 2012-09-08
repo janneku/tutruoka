@@ -9,6 +9,8 @@ To install, run
 
 as root. The tool will be called "tutruoka".
 
+Use -lang fi/en to specify language.
+
 The tool also supports filtering based on search keywords similar to Google
 search. Keywords from the command line are combined with logical AND, i.e.
 only the meals matching all keywords are shown. The keywords are
@@ -17,9 +19,9 @@ matches.
 
 Examples:
 
-    tutruoka -juust         Supress everything that has cheese in it.
+    tutruoka -lang en -cheese  Supress everything that has cheese in it.
 
-    tutruoka combo -tofu    Show combo meals but supress ones with "tofu".
+    tutruoka rohee -texmex     Show rohee meals but supress ones with texmex.
 
-    tutruoka zip rohee	    Show rohee meals from Zip restaurant.
+    tutruoka zip rohee	       Show rohee meals from Zip restaurant.
 
