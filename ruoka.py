@@ -68,6 +68,8 @@ def get_menu():
         # where xxx is JSON encoded payload.
         json_string = json.loads(data.strip()[1:-2])['d']
         d = json.loads(json_string)
+        if d is None:
+            continue
 
         options = list(meal_options)
         meal_dict = {}
